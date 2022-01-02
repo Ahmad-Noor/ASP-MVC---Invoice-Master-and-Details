@@ -1,0 +1,302 @@
+﻿@model WebApplication1.Models.PurchaseRequest
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+
+<link href="~/assets/css/vendor/summernote-bs4.css" rel="stylesheet" type="text/css" />
+<link href="~/assets/css/vendor/simplemde.min.css" rel="stylesheet" type="text/css" />
+<link href="~/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+<link href="~/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+
+
+
+<h4 class="header-title mb-3">Purchase Requisition</h4>
+
+
+<div class="form-row">
+    <div class="form-group col-md-3">
+        <label for="Department_id" class="col-form-label">Department</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.Department_id, new SelectList(@ViewBag.DepartmentList, "Id", "Name"), "Select", new { @class = "form-control" })
+    </div>
+
+    <div class="form-group col-md-3">
+        <label for="CostCenter_id" class="col-form-label"> Cost Center</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.CostCenter_id, new SelectList(@ViewBag.CostCenterList, "Id", "Name"), "Select", new { @class = "form-control" })
+
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group col-md-3">
+        <label for="DeliveryPlace" class="col-form-label">Delivery Place</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.EditorFor(model => model.DeliveryPlace, new { htmlAttributes = new { @class = "form-control" } })
+    </div>
+    <div class="form-group col-md-3">
+        <label for="DeliveryDate" class="col-form-label">Delivery Date</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.EditorFor(model => model.DeliveryDate, new { htmlAttributes = new { @class = "form-control", @placeholder = "MM/dd/YYYY", @data_mask = "12/31/9999" } })
+    </div>
+</div>
+
+<div class="form-row">
+
+    <div class="form-group col-md-3">
+        <label for="Currency_id" class="col-form-label">Currency</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.Currency_id, new SelectList(@ViewBag.CurrencyList, "Id", "Name"), "Select", new { @class = "form-control" })
+    </div>
+
+</div>
+
+@*<div class="form-row">
+
+    <div class="form-group col-md-3">
+        <label for="ApprovedbytheSite_id" class="col-form-label">Approved by the Site</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.ApprovedbytheSite_id, new SelectList(@ViewBag.Users, "User_id", "UserName"), "Select", new { @class = "form-control", @readonly = "@readonly" })
+
+    </div>
+
+    <div class="form-group col-md-3">
+        <label for="HeadOfDepartmenApproval_id" class="col-form-label">Head Of Departmen Approval</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.HeadOfDepartmenApproval_id, new SelectList(@ViewBag.Users, "User_id", "UserName"), "Select", new { @class = "form-control" })
+
+    </div>
+</div>
+
+<div class="form-row">
+
+
+    <div class="form-group col-md-3">
+        <label for="ConcurredbyProcurement_id" class="col-form-label">Concurred by Procurement</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.ConcurredbyProcurement_id, new SelectList(@ViewBag.Users, "User_id", "UserName"), "Select", new { @class = "form-control" })
+
+    </div>
+
+
+    <div class="form-group col-md-3">
+        <label for="ConcurredbyFinance_id" class="col-form-label">Concurred by Finance</label>
+    </div>
+    <div class="form-group col-md-3">
+        @Html.DropDownListFor(m => m.ConcurredbyFinance_id, new SelectList(@ViewBag.Users, "User_id", "UserName"), "Select", new { @class = "form-control" })
+    </div>
+</div>*@
+
+
+<div class="col-lg-12">
+<button class="btn btn-default" type="button" id="addItem" name="addItem" style="padding: 0px;margin: 0px;">
+    Add Item
+</button>
+<div class="dataTables_empty">
+    <table id="ItemDatatables" class="table table-striped table-no-bordered table-hover" cellspacing="0"
+            style="width:100%">
+        <thead>
+            <tr>
+                <th>#ID</th>
+                <th>Item</th>
+                <th>Item</th>
+                <th>Email</th>
+                <th>Contact</th>
+                <th class="disabled-sorting">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="newItem"></tbody>
+
+    </table>
+
+</div>
+</div>
+
+
+
+@section scripts{ 
+ 
+<script src="~/assets/js/vendor/jquery-ui.min.js"></script>
+<script src="~/assets/js/vendor/jquery.dataTables.min.js"></script>
+<script src="~/assets/js/vendor/dataTables.bootstrap4.js"></script>
+<script src="~/assets/js/vendor/dataTables.responsive.min.js"></script>
+<script src="~/assets/js/vendor/dataTables.checkboxes.min.js"></script>
+ 
+<script type="text/javascript">
+    ////////////////// Item ///////////////////////////
+                 var ItemTable;
+                $(document).ready(function () {
+                    ItemTable = $('#ItemDatatables').DataTable({ "paging": false, "searching": false, "info": false, responsive: true });
+
+                    ItemTable.on('click', '.save', function (e) {
+                        $tr = $(this).closest('tr');
+                        var id = $tr[0].cells[0].childNodes[0].data;
+                        var name = $('#' + $tr[0].cells[1].childNodes[0].id).val();
+                        var position = $('#' + $tr[0].cells[2].childNodes[0].id).val();
+                        var email = $('#' + $tr[0].cells[3].childNodes[0].id).val();
+                        var mobile = $('#' + $tr[0].cells[4].childNodes[0].id).val();
+                        ItemTable.row($tr).remove().draw();
+                        ItemTable.row.add([id, name, position, email, mobile, '<button class="btn btn-warning edit" type="button">edit</button> <button class="btn btn-danger remove" type="button">delete</button>']).draw();
+
+                        var data1 = [{ "id": id, "name": name, "position": position, "email": email, "mobile": mobile }];
+                        console.log(data1);
+                        console.log(JSON.stringify(data1));
+                      });
+
+                    ItemTable.on('click', '.edit', function (e) {
+                        $tr = $(this).closest('tr');
+                        var id = $tr[0].cells[0].childNodes[0].data;
+                        var itemcode = $tr[0].cells[1].childNodes[0].data;
+                        var itemname = $tr[0].cells[2].childNodes[0].data;
+                        var email = $tr[0].cells[3].childNodes[0].data;
+                        var mobile = $tr[0].cells[4].childNodes[0].data;
+                        ItemTable.row($tr).remove().draw();
+                         ItemTable.row.add([
+                            id,
+                            '<input id="itemcode' + ((parseInt(ItemTable.rows().count()) + 1)) + '" type="text" name="itemcode' + (parseInt(ItemTable.rows().count()) + 1) + '" value="' + itemcode + '" required />',
+                            '<input id="itemname' + (parseInt(ItemTable.rows().count()) + 1) + '" type="text" name="itemname' + (parseInt(ItemTable.rows().count()) + 1) + '" value="' + itemname + '" required />',
+                            '<input id="ItemEmail' + (parseInt(ItemTable.rows().count()) + 1) + '" type="email" name="ItemEmail' + (parseInt(ItemTable.rows().count()) + 1) + '" value="' + email + '" required />',
+                            '<input id="ItemMobile' + (parseInt(ItemTable.rows().count()) + 1) + '" type="tel" name="ItemMobile' + (parseInt(ItemTable.rows().count()) + 1) + '" value="' + mobile + '" required />',
+                            '<button type="button" class="btn btn-info save">save</button> '
+                        ]).draw();
+                    });
+
+                    ItemTable.on('click', '.remove', function (e) {
+                        $tr = $(this).closest('tr');
+                        ItemTable.row($tr).remove().draw();
+                        e.preventDefault();
+                     });
+
+                    ItemTable.on('click', '.cancel', function (e) {
+                        $tr = $(this).closest('tr');
+                        ItemTable.row($tr).remove().draw();
+                        e.preventDefault();
+                     });
+
+
+                });
+
+                $('#addItem').on('click', function () { 
+                    var id = (parseInt(ItemTable.rows().count()) + 1);
+
+                    ItemTable.row.add([
+                        id,
+                        '<input id="itemcode' + ((parseInt(ItemTable.rows().count()) + 1)) + '" type="text" name="itemcode' + (parseInt(ItemTable.rows().count()) + 1) + '" value="" required />',
+                        '<input id="itemname' + (parseInt(ItemTable.rows().count()) + 1) + '" type="text" name="itemname' + (parseInt(ItemTable.rows().count()) + 1) + '" value="" required />',
+                        '<input id="ItemEmail' + (parseInt(ItemTable.rows().count()) + 1) + '" type="email" name="ItemEmail' + (parseInt(ItemTable.rows().count()) + 1) + '" value="" required />',
+                        '<input id="ItemMobile' + (parseInt(ItemTable.rows().count()) + 1) + '" type="tel" name="ItemMobile' + (parseInt(ItemTable.rows().count()) + 1) + '" value="" required />',
+                        '<button type="button" class="btn btn-info save">save</button> <button type="button" class="btn btn-danger cancel">cancel</button>'
+                    ]).draw(false); 
+                });
+ 
+                
+                //****************** Save ***************************
+                      var department_id = document.getElementById("Department_id").value;
+                      var costCenter_id = document.getElementById("CostCenter_id").value;
+                      var currency_id = document.getElementById("Currency_id").value;
+                      var deliveryDate = document.getElementById("DeliveryDate").value;
+                      var deliveryPlace = document.getElementById("DeliveryPlace").value;
+
+                      var data1 = [{
+                          "Status": "Create",
+                          "Department_id": department_id,
+                          "CostCenter_id": costCenter_id,
+                          "DeliveryDate": deliveryDate,
+                          "DeliveryPlace": deliveryPlace,
+                          "Currency_id": currency_id,
+                       }];
+
+
+                           var PurchaseRequest_Items = [];
+                                                    var table = document.getElementById('ItemDatatables');
+                                                    var rowLength = table.rows.length;
+
+                                                    for (var i = 1; i < rowLength; i += 1) {
+                                                        var row = table.rows[i]; 
+                                                        var Item_id = "";
+                                                        var Email = "";
+                                                        var Mobile = "";
+                                                        var Contact = "";
+
+                                                        if (row.cells[1] != null) Item_id = row.cells[1].childNodes[0].data;
+                                                        if (row.cells[2] != null) Email = row.cells[2].childNodes[0].data;
+                                                        if (row.cells[3] != null) Mobile = row.cells[3].childNodes[0].data;
+                                                        if (row.cells[4] != null) Contact = row.cells[4].childNodes[0].data;
+                                                        if (Vendor_id != "") {
+                                                            PurchaseRequest_RecommendedVendors.push({
+                                                                "Item_id": Vendor_id,
+                                                                "Email": Email,
+                                                                "Mobile": Mobile,
+                                                                "Contact": Contact
+                                                            });
+                                                        }
+                                                    }
+
+
+                      $.ajax({
+                          type: "post",
+                          url: "/Home/Index",
+                          data: {
+                              "purchaseRequest": data1,
+                              "items": PurchaseRequest_Items
+                          },
+                          success: function (data) {
+                              alert("Data has been successfully saved.");
+                              window.location = "/Home/Index";
+                          },
+                          error: function (XMLHttpRequest, textStatus, error) { alert("Error in Save Data");}
+                      })
+ 
+  
+                  function Item_Change(param) {
+                      id =  param.id;
+                      document.getElementById('itemname' + id).value = param.options[param.selectedIndex].innerHTML;
+                      id2 = param.value;
+                       
+                      $.ajax({
+                          url: '/BackOffice/FillItemUnit',
+                          dataType: "json",
+                          type: "GET",
+                          contentType: 'application/json; charset=utf-8',
+                          cache: false,
+                          data: { prid: id2 },
+                          success: function (data) { 
+                              $(data).each(function (index, item_) {
+                                  document.getElementById('UnitPrice' + id).value = item_.PRICE;
+                                  document.getElementById('UnitOfMeasure' + id).value = item_.UNITID;
+                                  document.getElementById('Quantity' + id).value =1;
+                              });
+
+                          },
+                          error: function (xhr) {
+                              alert('error');
+                          }
+                      }); 
+                  }
+                    
+
+</Script> }
+
+
+<button type="submit" class="btn btn-primary" onclick="saveall();">Save</button>
+
+
+<div style="visibility: hidden">
+    @Html.DropDownList("Categorylookup", new SelectList(@ViewBag.Items, "Id", "Name"), "Select", new { @class = "form-control",    @style = "width: 150px;" })
+    @Html.DropDownList("Itemslookup", new SelectList(@ViewBag.Items, "Id", "Name"), "Select", new { @class = "form-control", @onchange = "Item_Change(this);", @style = "width: 150px;" })
+    @Html.DropDownList("Unitslookup", new SelectList(@ViewBag.Units,"Id", "Name"), "Select", new { @class = "form-control", @style = "width: 150px;" })
+
+</div>
+
+
